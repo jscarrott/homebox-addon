@@ -16,6 +16,6 @@ options:
   message: "Hello world..."
 schema:
   message: "str?"
-image: "ghcr.io/jscarrott/{arch}-addon-example"
+image: "ghcr.io/jscarrott/addon-example"
 ports:
   7745/tcp: 7745
