@@ -111,3 +111,42 @@ jobs:
             --image "${{ steps.check.outputs.image }}" \
             --docker-hub "ghcr.io/${{ github.repository_owner }}" \
             --addon
+  manifest:
+    needs: [init, build]
+    if: needs.init.outputs.changed == 'true' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
+    name: Publish multi-arch manifest for ${{ matrix.addon }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.1.4
+
+      - name: Get add-on info
+        id: info
+        uses: home-assistant/actions/helpers/info@master
+        with:
+          path: "./${{ matrix.addon }}"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push manifest
+        run: |
+          image='${{ steps.info.outputs.image }}'
+          base_image=${image/-{arch}/}
+          images=()
+
+          for arch in ${{ steps.info.outputs.architectures }}; do
+            images+=("ghcr.io/${{ github.repository_owner }}/${image/\{arch\}/$arch}")
+          done
+
+          printf 'Creating manifest %s from %s\n' "$base_image" "${images[*]}"
+          docker buildx imagetools create -t "ghcr.io/${{ github.repository_owner }}/$base_image" ${images[*]}
