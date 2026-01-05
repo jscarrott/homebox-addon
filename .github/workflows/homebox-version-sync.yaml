@@ -87,7 +87,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: automation/homebox-${{ steps.latest.outputs.version }}
-          commit-message: chore: track Homebox ${{ steps.latest.outputs.version }}
+          commit-message: "chore: track Homebox ${{ steps.latest.outputs.version }}"
           title: Update Homebox add-on to ${{ steps.latest.outputs.version }}
           body: |
             ## Summary
