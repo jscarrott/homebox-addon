@@ -46,28 +46,48 @@ jobs:
       - name: Update add-on metadata to Homebox ${{ steps.latest.outputs.version }}
         if: steps.latest.outputs.version != steps.current.outputs.version
         run: |
-          version="${{ steps.latest.outputs.version }}"
-          sed -i "s/^version: .*/version: \"${version}\"/" example/config.yaml
-          sed -i "s|aarch64: \"ghcr.io/sysadminsmedia/homebox:.*\"|aarch64: \"ghcr.io/sysadminsmedia/homebox:${version}-arm\"|" example/build.yaml
-          sed -i "s|amd64: \"ghcr.io/sysadminsmedia/homebox:.*\"|amd64: \"ghcr.io/sysadminsmedia/homebox:${version}\"|" example/build.yaml
-          sed -i "s|armv7: \"ghcr.io/sysadminsmedia/homebox:.*\"|armv7: \"ghcr.io/sysadminsmedia/homebox:${version}-arm\"|" example/build.yaml
           python - <<'PY'
-from pathlib import Path
-version = "${{ steps.latest.outputs.version }}"
-path = Path("example/CHANGELOG.md")
-lines = path.read_text().splitlines()
-header = lines[0]
-rest = "\n".join(lines[1:]).lstrip()
-entries = f"## {version}\n\n- Package Homebox release {version} for the Home Assistant add-on.\n\n"
-path.write_text(f"{header}\n\n{entries}{rest}\n")
-PY
+          from pathlib import Path
+
+          version = "${{ steps.latest.outputs.version }}"
+
+          config_path = Path("example/config.yaml")
+          config_lines = config_path.read_text().splitlines()
+          config_path.write_text("\n".join(
+              [f'version: "{version}"' if line.startswith("version:") else line for line in config_lines]
+          ) + "\n")
+
+          build_path = Path("example/build.yaml")
+          replacements = {
+              "aarch64": f"ghcr.io/sysadminsmedia/homebox:{version}-arm",
+              "amd64": f"ghcr.io/sysadminsmedia/homebox:{version}",
+              "armv7": f"ghcr.io/sysadminsmedia/homebox:{version}-arm",
+          }
+          updated_build = []
+          for line in build_path.read_text().splitlines():
+              stripped = line.strip()
+              for arch, image in replacements.items():
+                  if stripped.startswith(f"{arch}:"):
+                      indent = line[: line.index(stripped)]
+                      line = f'{indent}{arch}: "{image}"'
+                      break
+              updated_build.append(line)
+          build_path.write_text("\n".join(updated_build) + "\n")
+
+          changelog_path = Path("example/CHANGELOG.md")
+          lines = changelog_path.read_text().splitlines()
+          header = lines[0]
+          rest = "\n".join(lines[1:]).lstrip()
+          entries = f"## {version}\n\n- Package Homebox release {version} for the Home Assistant add-on.\n\n"
+          changelog_path.write_text(f"{header}\n\n{entries}{rest}\n")
+          PY
 
       - name: Create pull request
         if: steps.latest.outputs.version != steps.current.outputs.version
         uses: peter-evans/create-pull-request@v7
         with:
           branch: automation/homebox-${{ steps.latest.outputs.version }}
-          commit-message: chore: track Homebox ${{ steps.latest.outputs.version }}
+          commit-message: "chore: track Homebox ${{ steps.latest.outputs.version }}"
           title: Update Homebox add-on to ${{ steps.latest.outputs.version }}
           body: |
             ## Summary

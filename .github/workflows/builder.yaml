@@ -141,12 +141,13 @@ jobs:
       - name: Create and push manifest
         run: |
           image='${{ steps.info.outputs.image }}'
-          base_image=${image/-{arch}/}
+          base_image=${image/-\{arch\}/}
           images=()
 
-          for arch in ${{ steps.info.outputs.architectures }}; do
+          architectures=$(echo '${{ steps.info.outputs.architectures }}' | jq -r '.[]')
+          for arch in $architectures; do
             images+=("ghcr.io/${{ github.repository_owner }}/${image/\{arch\}/$arch}")
           done
 
-          printf 'Creating manifest %s from %s\n' "$base_image" "${images[*]}"
-          docker buildx imagetools create -t "ghcr.io/${{ github.repository_owner }}/$base_image" ${images[*]}
+          printf 'Creating manifest ghcr.io/%s from %s\n' "${{ github.repository_owner }}/$base_image" "${images[*]}"
+          docker buildx imagetools create -t "ghcr.io/${{ github.repository_owner }}/$base_image" "${images[@]}"
