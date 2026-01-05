@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bashio
+# Start the Homebox service
+
+bashio::log.info "Starting Homebox"
+exec /app/api /data/config.yml

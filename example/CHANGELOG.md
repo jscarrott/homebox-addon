@@ -1,5 +1,7 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
-## 2.0.2
+## 2.0.3
 
-Use latest sysadmin media version 0.16
+- Cleaned up metadata and documentation for the Homebox add-on
+- Updated container labels and image reference
+- Ensured startup validates the presence of a Homebox configuration file

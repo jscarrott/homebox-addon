@@ -1,21 +1,14 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
-name: Homebox Addon
-version: "2.0.2"
+name: Homebox Add-on
+version: "2.0.3"
 slug: homebox
-description: Homebox add-on
-url: "https://github.com/jscarrott/homebox-addon/blob/main/example"
+description: Run Homebox inventory inside Home Assistant
+url: "https://github.com/jscarrott/homebox-addon"
 arch:
-  # - armhf
   - armv7
   - aarch64
   - amd64
-  # - i386
-map:
-  - share:rw
-options:
-  message: "Hello world..."
-schema:
-  message: "str?"
-image: "ghcr.io/jscarrott/addon-example"
 ports:
   7745/tcp: 7745
+webui: "http://[HOST]:[PORT:7745]"
+image: "ghcr.io/jscarrott/homebox-addon-{arch}"
