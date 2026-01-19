@@ -2,6 +2,7 @@
 # Start the Homebox service
 
 bashio::log.info "Starting Homebox"
+export HOME="/data"
 export TMPDIR="/data/tmp"
 if bashio::fs.file_exists "/data/config.yml"; then
   exec /app/api /data/config.yml

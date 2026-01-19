@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: Homebox Add-on
-version: "2.0.3"
+version: "2.0.4"
 slug: homebox
 description: Run Homebox inventory inside Home Assistant
 url: "https://github.com/jscarrott/homebox-addon"
