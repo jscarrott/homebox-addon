@@ -1,11 +1,6 @@
 #!/bin/sh
 # Start the Homebox service
 
-# Ensure tmp dir exists (fallback in case init script didn't run)
-mkdir -p /data/tmp
-
-export TMPDIR="/data/tmp"
-
 echo "Starting Homebox"
 
 if [ -f /data/config.yml ]; then
