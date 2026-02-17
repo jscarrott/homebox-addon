@@ -1,9 +1,14 @@
-#!/usr/bin/with-contenv bashio
+#!/bin/sh
 # Start the Homebox service
 
-bashio::log.info "Starting Homebox"
+# Ensure tmp dir exists (fallback in case init script didn't run)
+mkdir -p /data/tmp
+
 export TMPDIR="/data/tmp"
-if bashio::fs.file_exists "/data/config.yml"; then
+
+echo "Starting Homebox"
+
+if [ -f /data/config.yml ]; then
   exec /app/api /data/config.yml
 fi
 
