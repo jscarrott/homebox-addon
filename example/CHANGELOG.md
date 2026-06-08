@@ -1,5 +1,16 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 2.1.0
+
+- Updated Homebox to **v0.25.0** (from 0.16.0). First boot runs several
+  forward-only schema migrations; existing data is preserved (the former
+  `labels` table is migrated to `tags`). Back up before updating.
+- Pinned both architectures to the same `ghcr.io/sysadminsmedia/homebox:0.25.0`
+  multi-arch image (previously aarch64/armv7 used `0.16-arm` and amd64 used
+  `latest`)
+- Dropped the `armv7` architecture — upstream Homebox no longer publishes 32-bit
+  arm images (0.25.0 provides only amd64 and arm64/aarch64)
+
 ## 2.0.5
 
 - Fixed second startup crash (`database is locked (SQLITE_BUSY)`) by granting the
