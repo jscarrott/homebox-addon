@@ -24,8 +24,10 @@ profile homebox flags=(attach_disconnected,mediate_deleted) {
   /usr/lib/bashio/** ix,
   /tmp/** rwk,
 
-  # Access to options.json and other files within your addon
-  /data/** rw,
+  # Access to options.json and other files within your addon.
+  # rwmk: SQLite's WAL mode needs file locking (k) and shared-memory
+  # mmap (m) on homebox.db and its -wal/-shm sidecars.
+  /data/** rwmk,
 
   # Start new profile for service
   /app/api cx -> homebox_service,
@@ -36,8 +38,12 @@ profile homebox flags=(attach_disconnected,mediate_deleted) {
     # Receive signals from S6-Overlay
     signal (receive) peer=*_homebox,
 
-    # Access to options.json and other files within your addon
-    /data/** rw,
+    # Access to options.json and other files within your addon.
+    # rwmk is required: Homebox opens homebox.db in SQLite WAL mode, which
+    # needs file locking (k) plus shared-memory mmap (m) on the db and its
+    # -wal/-shm sidecars. Without these the service panics on startup with
+    # "database is locked (SQLITE_BUSY)".
+    /data/** rwmk,
 
     # Temp space (Homebox extracts migrations here if TMPDIR points at it)
     /tmp/ rw,
