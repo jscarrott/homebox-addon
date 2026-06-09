@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
 build_from:
-  aarch64: "ghcr.io/sysadminsmedia/homebox:0.25.0"
+  aarch64: "ghcr.io/sysadminsmedia/homebox:0.25.0-arm"
   amd64: "ghcr.io/sysadminsmedia/homebox:0.25.0"
 labels:
   org.opencontainers.image.title: "Home Assistant Add-on: Homebox"

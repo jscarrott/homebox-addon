@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.25.0
+
+- Package Homebox release 0.25.0 for the Home Assistant add-on.
+
 ## 2.1.0
 
 - Updated Homebox to **v0.25.0** (from 0.16.0). First boot runs several
