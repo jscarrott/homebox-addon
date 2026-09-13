@@ -1,5 +1,16 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 2.2.0
+
+- Updated Homebox to **v0.26.2** (from 0.25.0). Back up before updating: first
+  boot runs forward-only schema migrations.
+- Both architectures now pin the plain `ghcr.io/sysadminsmedia/homebox:0.26.2`
+  tag. Upstream publishes a single multi-arch manifest (amd64 + arm64) per
+  release; the old `-arm` suffixed tag no longer exists.
+- Fixed the daily release-sync workflow, which had been failing to open a bump
+  PR and would have written a broken aarch64 image tag and a downgraded add-on
+  version if it had succeeded.
+
 ## 2.1.0
 
 - Updated Homebox to **v0.25.0** (from 0.16.0). First boot runs several
