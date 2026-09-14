@@ -140,7 +140,12 @@ jobs:
 
       - name: Create and push manifest
         run: |
+          # info returns the image quoted and with its registry/owner prefix
+          # ("ghcr.io/<owner>/homebox-addon-{arch}"). Keep only the name, as the
+          # build job does, so the owner prefix below is not applied twice.
           image='${{ steps.info.outputs.image }}'
+          image=${image//\"/}
+          image=${image##*/}
           base_image=${image/-\{arch\}/}
           images=()
 
