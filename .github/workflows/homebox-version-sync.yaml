@@ -32,66 +32,101 @@ jobs:
             }
             core.setOutput('version', tag);
 
-      - name: Read current add-on version
+      # The add-on has its own version series (2.x) that is independent of the packaged
+      # Homebox version. The Homebox version we currently ship is the tag on the base
+      # image in build.yaml -- never config.yaml's `version:`.
+      - name: Read current versions
         id: current
         run: |
-          version=$(grep '^version:' example/config.yaml | sed 's/version: *"\?//; s/"$//')
-          echo "version=$version" >> $GITHUB_OUTPUT
+          homebox=$(grep -oE 'ghcr\.io/sysadminsmedia/homebox:[^"[:space:]]+' example/build.yaml \
+            | head -n1 | cut -d: -f2)
+          addon=$(grep '^version:' example/config.yaml | head -n1 \
+            | sed -E 's/^version:[[:space:]]*"?([^"[:space:]]*)"?.*/\1/')
+
+          if [ -z "$homebox" ]; then
+            echo "::error::Could not find a ghcr.io/sysadminsmedia/homebox image in example/build.yaml"
+            exit 1
+          fi
+          if [ -z "$addon" ]; then
+            echo "::error::Could not read version: from example/config.yaml"
+            exit 1
+          fi
+
+          echo "Packaged Homebox: $homebox | add-on version: $addon"
+          echo "homebox=$homebox" >> $GITHUB_OUTPUT
+          echo "addon=$addon" >> $GITHUB_OUTPUT
 
       - name: Stop if already on latest Homebox
-        if: steps.latest.outputs.version == steps.current.outputs.version
+        if: steps.latest.outputs.version == steps.current.outputs.homebox
         run: |
-          echo "Homebox ${steps.latest.outputs.version} already packaged." >> $GITHUB_STEP_SUMMARY
+          echo "Homebox ${{ steps.latest.outputs.version }} is already packaged." >> $GITHUB_STEP_SUMMARY
 
       - name: Update add-on metadata to Homebox ${{ steps.latest.outputs.version }}
-        if: steps.latest.outputs.version != steps.current.outputs.version
+        id: update
+        if: steps.latest.outputs.version != steps.current.outputs.homebox
         run: |
           python - <<'PY'
+          import os
+          import re
           from pathlib import Path
 
           version = "${{ steps.latest.outputs.version }}"
+          previous = "${{ steps.current.outputs.homebox }}"
+          current_addon = "${{ steps.current.outputs.addon }}"
+
+          # Packaging a new Homebox release is a feature bump of the add-on's own version.
+          # Writing `version` here instead would be a downgrade (2.1.0 -> 0.26.2) and
+          # Supervisor would never offer the update.
+          major, minor = (current_addon.split(".") + ["0", "0"])[:2]
+          addon_version = f"{int(major)}.{int(minor) + 1}.0"
 
           config_path = Path("example/config.yaml")
           config_lines = config_path.read_text().splitlines()
           config_path.write_text("\n".join(
-              [f'version: "{version}"' if line.startswith("version:") else line for line in config_lines]
+              [f'version: "{addon_version}"' if line.startswith("version:") else line for line in config_lines]
           ) + "\n")
 
+          # Upstream publishes one multi-arch manifest per release (linux/amd64 +
+          # linux/arm64), so every arch points at the same plain tag. The old
+          # `<version>-arm` suffix no longer resolves.
           build_path = Path("example/build.yaml")
-          replacements = {
-              "aarch64": f"ghcr.io/sysadminsmedia/homebox:{version}-arm",
-              "amd64": f"ghcr.io/sysadminsmedia/homebox:{version}",
-              "armv7": f"ghcr.io/sysadminsmedia/homebox:{version}-arm",
-          }
-          updated_build = []
-          for line in build_path.read_text().splitlines():
-              stripped = line.strip()
-              for arch, image in replacements.items():
-                  if stripped.startswith(f"{arch}:"):
-                      indent = line[: line.index(stripped)]
-                      line = f'{indent}{arch}: "{image}"'
-                      break
-              updated_build.append(line)
-          build_path.write_text("\n".join(updated_build) + "\n")
+          updated_build, count = re.subn(
+              r'(ghcr\.io/sysadminsmedia/homebox):[^"\s]+',
+              rf'\g<1>:{version}',
+              build_path.read_text(),
+          )
+          if not count:
+              raise SystemExit("No ghcr.io/sysadminsmedia/homebox image found in example/build.yaml")
+          build_path.write_text(updated_build)
 
           changelog_path = Path("example/CHANGELOG.md")
           lines = changelog_path.read_text().splitlines()
           header = lines[0]
           rest = "\n".join(lines[1:]).lstrip()
-          entries = f"## {version}\n\n- Package Homebox release {version} for the Home Assistant add-on.\n\n"
+          entries = (
+              f"## {addon_version}\n\n"
+              f"- Updated Homebox to **v{version}** (from {previous}).\n\n"
+          )
           changelog_path.write_text(f"{header}\n\n{entries}{rest}\n")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"addon_version={addon_version}\n")
           PY
 
+      # Requires "Allow GitHub Actions to create and approve pull requests"
+      # (Settings -> Actions -> General). Without it this step fails with
+      # "GitHub Actions is not permitted to create or approve pull requests".
       - name: Create pull request
-        if: steps.latest.outputs.version != steps.current.outputs.version
+        if: steps.latest.outputs.version != steps.current.outputs.homebox
         uses: peter-evans/create-pull-request@v7
         with:
           branch: automation/homebox-${{ steps.latest.outputs.version }}
           commit-message: "chore: track Homebox ${{ steps.latest.outputs.version }}"
-          title: Update Homebox add-on to ${{ steps.latest.outputs.version }}
+          title: "Update add-on to ${{ steps.update.outputs.addon_version }} (Homebox ${{ steps.latest.outputs.version }})"
           body: |
             ## Summary
-            - bump the add-on version and base images to Homebox ${{ steps.latest.outputs.version }}
+            - package Homebox ${{ steps.latest.outputs.version }} (was ${{ steps.current.outputs.homebox }})
+            - bump the add-on version to ${{ steps.update.outputs.addon_version }} so Supervisor offers the update
             - open a PR so the builder can publish refreshed add-on images after merge
 
             ## Testing
