@@ -38,17 +38,17 @@ jobs:
       - name: Read current versions
         id: current
         run: |
-          homebox=$(grep -oE 'ghcr\.io/sysadminsmedia/homebox:[^"[:space:]]+' example/build.yaml \
+          homebox=$(grep -oE 'ghcr\.io/sysadminsmedia/homebox:[^"[:space:]]+' homebox/build.yaml \
             | head -n1 | cut -d: -f2)
-          addon=$(grep '^version:' example/config.yaml | head -n1 \
+          addon=$(grep '^version:' homebox/config.yaml | head -n1 \
             | sed -E 's/^version:[[:space:]]*"?([^"[:space:]]*)"?.*/\1/')
 
           if [ -z "$homebox" ]; then
-            echo "::error::Could not find a ghcr.io/sysadminsmedia/homebox image in example/build.yaml"
+            echo "::error::Could not find a ghcr.io/sysadminsmedia/homebox image in homebox/build.yaml"
             exit 1
           fi
           if [ -z "$addon" ]; then
-            echo "::error::Could not read version: from example/config.yaml"
+            echo "::error::Could not read version: from homebox/config.yaml"
             exit 1
           fi
 
@@ -80,7 +80,7 @@ jobs:
           major, minor = (current_addon.split(".") + ["0", "0"])[:2]
           addon_version = f"{int(major)}.{int(minor) + 1}.0"
 
-          config_path = Path("example/config.yaml")
+          config_path = Path("homebox/config.yaml")
           config_lines = config_path.read_text().splitlines()
           config_path.write_text("\n".join(
               [f'version: "{addon_version}"' if line.startswith("version:") else line for line in config_lines]
@@ -89,17 +89,17 @@ jobs:
           # Upstream publishes one multi-arch manifest per release (linux/amd64 +
           # linux/arm64), so every arch points at the same plain tag. The old
           # `<version>-arm` suffix no longer resolves.
-          build_path = Path("example/build.yaml")
+          build_path = Path("homebox/build.yaml")
           updated_build, count = re.subn(
               r'(ghcr\.io/sysadminsmedia/homebox):[^"\s]+',
               rf'\g<1>:{version}',
               build_path.read_text(),
           )
           if not count:
-              raise SystemExit("No ghcr.io/sysadminsmedia/homebox image found in example/build.yaml")
+              raise SystemExit("No ghcr.io/sysadminsmedia/homebox image found in homebox/build.yaml")
           build_path.write_text(updated_build)
 
-          changelog_path = Path("example/CHANGELOG.md")
+          changelog_path = Path("homebox/CHANGELOG.md")
           lines = changelog_path.read_text().splitlines()
           header = lines[0]
           rest = "\n".join(lines[1:]).lstrip()
