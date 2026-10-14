@@ -1,5 +1,12 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 2.2.1
+
+- Fixed a startup crash on Homebox 0.26 (`auth.api_key_pepper must be set to at
+  least 32 bytes`). The add-on now generates the required API key pepper on
+  first boot and keeps it in `/data/api_key_pepper`. Don't delete that file:
+  changing the pepper invalidates every API key Homebox has issued.
+
 ## 2.2.0
 
 - Updated Homebox to **v0.26.2** (from 0.25.0). Back up before updating: first

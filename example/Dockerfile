@@ -13,4 +13,8 @@ LABEL org.opencontainers.image.source="https://github.com/jscarrott/homebox-addo
 ENV TMPDIR=/data/tmp \
     HOME=/data
 
-ENTRYPOINT ["/app/api"]
+# Homebox 0.26+ panics at startup without HBOX_AUTH_API_KEY_PEPPER; the wrapper
+# generates one on first boot and persists it in /data.
+COPY rootfs/usr/bin/homebox-start /usr/bin/homebox-start
+
+ENTRYPOINT ["/usr/bin/homebox-start"]
