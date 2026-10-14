@@ -6,6 +6,8 @@
   least 32 bytes`). The add-on now generates the required API key pepper on
   first boot and keeps it in `/data/api_key_pepper`. Don't delete that file:
   changing the pepper invalidates every API key Homebox has issued.
+- Replaced the template's placeholder "EXAMPLE" icon and logo with Homebox's own
+  artwork.
 
 ## 2.2.0
 
