@@ -1,0 +1,19 @@
+#!/bin/sh
+# Homebox 0.26 refuses to start unless auth.api_key_pepper is at least 32 bytes.
+# Generate one on first boot and keep it in /data so it survives restarts and
+# updates: rotating it invalidates every API key Homebox has issued.
+set -e
+
+mkdir -p "$TMPDIR"
+
+PEPPER_FILE=/data/api_key_pepper
+if [ -z "$HBOX_AUTH_API_KEY_PEPPER" ]; then
+  if [ ! -s "$PEPPER_FILE" ]; then
+    echo "Generating Homebox API key pepper at $PEPPER_FILE"
+    (umask 077 && head -c 48 /dev/urandom | base64 | tr -d '\n' > "$PEPPER_FILE")
+  fi
+  HBOX_AUTH_API_KEY_PEPPER=$(cat "$PEPPER_FILE")
+  export HBOX_AUTH_API_KEY_PEPPER
+fi
+
+exec /app/api "$@"
