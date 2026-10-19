@@ -14,7 +14,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4.1.4
+        uses: actions/checkout@v7.0.1
 
       - name: Get latest Homebox release
         id: latest
