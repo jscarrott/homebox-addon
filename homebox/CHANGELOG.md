@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 2.3.0
+
+- Updated Homebox to **v0.27.0** (from 0.26.2).
+
 ## 2.2.1
 
 - Fixed a startup crash on Homebox 0.26 (`auth.api_key_pepper must be set to at
