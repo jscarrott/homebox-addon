@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 2.4.0
+
+- Updated Homebox to **v0.27.1** (from 0.27.0).
+
 ## 2.3.0
 
 - Updated Homebox to **v0.27.0** (from 0.26.2).
