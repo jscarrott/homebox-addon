@@ -118,7 +118,7 @@ jobs:
       # "GitHub Actions is not permitted to create or approve pull requests".
       - name: Create pull request
         if: steps.latest.outputs.version != steps.current.outputs.homebox
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: automation/homebox-${{ steps.latest.outputs.version }}
           commit-message: "chore: track Homebox ${{ steps.latest.outputs.version }}"
